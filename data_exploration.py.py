@@ -37,16 +37,45 @@ purchase_df.select([count(when(col(c).isNull() | isnan(c), c)).alias(c) for c in
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC Initial observations:
-# MAGIC - Some coumn names have spaces (needs to be standarized to snake case to load nicely into data warehouse)
-# MAGIC - All columns are string type (will need to investigate what types to convert to)
-# MAGIC - 
+# Summary statistics
+print("avocado")
+avocado_df.describe().show()
+print("consumer")
+consumer_df.describe().show()
+print("fertilizer")
+fertilizer_df.describe().show()
+print("purchase")
+purchase_df.describe().show()
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC show external locations;
+# Check for duplicates
+print("Avocado duplicates:", avocado_df.count() - avocado_df.dropDuplicates().count())
+print("Consumer duplicates:", consumer_df.count() - consumer_df.dropDuplicates().count())
+print("Fertilizer duplicates:", fertilizer_df.count() - fertilizer_df.dropDuplicates().count())
+print("Purchase duplicates:", purchase_df.count() - purchase_df.dropDuplicates().count())
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC Initial observations:
+# MAGIC
+# MAGIC - Some column names have spaces (needs to be standarized to snake case to load nicely into data warehouse):
+# MAGIC   - `avocado.ripe index when picked` needs to be snake case
+# MAGIC   - `purchase.QA process` needs to be snake case
+# MAGIC
+# MAGIC - All columns are string type (will need to investigate what types to convert to)
+# MAGIC - Avocado 
+# MAGIC   - has no null values
+# MAGIC   - issues in data - min `picked_date` is before min `born_date` which doesn't make sense, data issue. Also data types dont match (date vs timestamp)
+# MAGIC   - will need to implement logic to check that `picked_date` is after `born_date`, and that `sold_date` is also after `picked_date` to get valid data
+# MAGIC - Consumer has a null for `age`, but that might not be an issue
+# MAGIC   - `age` min is 190, max is 36 - data issue
+# MAGIC - Fertilizer has a null value for `purchaseid` and `consumerid`, both of which are foriegn keys that are to be NOT NULL. No nulls for primary key `fertilizerid`
+# MAGIC   - `mg` is mostly NULL and has tons of variance 
+# MAGIC   - `frequency` is not standardized at all, need to understand how this is measured/recorded
+# MAGIC   - several duplicates, half the data is duplicated 
+# MAGIC - Purchase has a null value for primary key `purchaseid` and foreign key `consumerid` (which is also to be NOT NULL). Many other nulls in other columns
 
 # COMMAND ----------
 
@@ -96,6 +125,36 @@ purchase_df.select([count(when(col(c).isNull() | isnan(c), c)).alias(c) for c in
 # MAGIC     age STRING
 # MAGIC );
 # MAGIC
+
+# COMMAND ----------
+
+from pyspark.sql.functions import col
+
+# Standardize column names
+def standardize_column_names(df):
+    for col_name in df.columns:
+        new_col_name = col_name.strip().lower().replace(" ", "_")
+        df = df.withColumnRenamed(col_name, new_col_name)
+    return df
+
+avocado_df = standardize_column_names(avocado_df)
+consumer_df = standardize_column_names(consumer_df)
+fertilizer_df = standardize_column_names(fertilizer_df)
+purchase_df = standardize_column_names(purchase_df)
+
+# COMMAND ----------
+
+# Write the Spark DataFrames to tables
+avocado_df.write.format("delta").mode("overwrite").option("mergeSchema", "true").saveAsTable("tendo_de.bronze.avocado")
+consumer_df.write.format("delta").mode("overwrite").option("mergeSchema", "true").saveAsTable("tendo_de.bronze.consumer")
+fertilizer_df.write.format("delta").mode("overwrite").option("mergeSchema", "true").saveAsTable("tendo_de.bronze.fertilizer")
+purchase_df.write.format("delta").mode("overwrite").option("mergeSchema", "true").saveAsTable("tendo_de.bronze.purchase")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from tendo_de.bronze.avocado;
+# MAGIC select * from tendo_de.bronze.consumer;
 
 # COMMAND ----------
 

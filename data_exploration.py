@@ -158,4 +158,19 @@ purchase_df.write.format("delta").mode("overwrite").option("mergeSchema", "true"
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC Creating the output file
+# MAGIC
+# MAGIC | Field Name | Comments |
+# MAGIC | -------- | ------- |
+# MAGIC | consumer_id | Consumer id |
+# MAGIC | Sex | Consumer sex |
+# MAGIC | age | Consumer age |
+# MAGIC | avocado_days_sold | Avocado age in days | 
+# MAGIC | avocado_ripe_index | Values: 0-10 |
+# MAGIC | avodcado_days_picked | |
+# MAGIC | fertilizer_type | |
+
+# COMMAND ----------
+
 

@@ -1,6 +1,7 @@
-CREATE DATABASE IF NOT EXISTS tendo_de_bronze;
+USE DATABASE tendo;
+CREATE SCHEMA IF NOT EXISTS bronze;
 
-CREATE TABLE IF NOT EXISTS tendo_de_bronze.purchase (
+CREATE TABLE IF NOT EXISTS tendo.bronze.purchase (
   purchaseid STRING,
   consumerid STRING,
   graphed_date STRING,
@@ -14,7 +15,7 @@ CREATE TABLE IF NOT EXISTS tendo_de_bronze.purchase (
   load_timestamp TIMESTAMP
 ) USING DELTA;
 
-CREATE TABLE IF NOT EXISTS tendo_de_bronze.avocado (
+CREATE TABLE IF NOT EXISTS tendo.bronze.avocado (
   consumerid STRING,
   purchaseid STRING,
   avocado_bunch_id STRING,
@@ -23,12 +24,11 @@ CREATE TABLE IF NOT EXISTS tendo_de_bronze.avocado (
   born_date STRING,
   picked_date STRING,
   sold_date STRING,
-  avocado_days_picked STRING,
   raw_file_name STRING,
   load_timestamp TIMESTAMP
 ) USING DELTA;
 
-CREATE TABLE IF NOT EXISTS tendo_de_bronze.fertilizer (
+CREATE TABLE IF NOT EXISTS tendo.bronze.fertilizer (
   purchaseid STRING,
   consumerid STRING,
   fertilizerid STRING,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS tendo_de_bronze.fertilizer (
   load_timestamp TIMESTAMP
 ) USING DELTA;
 
-CREATE TABLE IF NOT EXISTS tendo_de_bronze.consumer (
+CREATE TABLE IF NOT EXISTS tendo.bronze.consumer (
   consumerid STRING,
   sex STRING,
   ethnicity STRING,

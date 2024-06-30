@@ -1,5 +1,5 @@
 USE DATABASE tendo;
-CREATE SCHEMA IF NOT EXISTS bronze;
+CREATE SCHEMA IF NOT EXISTS tendo.bronze;
 
 CREATE TABLE IF NOT EXISTS tendo.bronze.purchase (
   purchaseid STRING,

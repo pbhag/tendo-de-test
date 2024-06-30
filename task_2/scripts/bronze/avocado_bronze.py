@@ -5,8 +5,7 @@ def main():
     spark = SparkSession.builder.appName("AvocadoBronzeLayer").getOrCreate()
 
     path = "s3://tendo-de-test/avocado.csv"
-    bronze_path = "/mnt/bronze/avocado"
-    table_name = "tendo_de_bronze.avocado"
+    table_name = "tendo.bronze.avocado"
     ddl_path = "ddl/create_bronze_tables.sql"
 
     try:

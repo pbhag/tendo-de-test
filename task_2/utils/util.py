@@ -23,5 +23,18 @@ def deduplicate_data(df: DataFrame, primary_keys: list) -> DataFrame:
     window_spec = Window.partitionBy(*primary_keys).orderBy(col("load_timestamp").desc())
     return df.withColumn("row_number", row_number().over(window_spec)).filter(col("row_number") == 1).drop("row_number")
 
-def enforce_schema(df: DataFrame, schema: StructType) -> DataFrame:
-    return df.select([col(field.name).cast(field.dataType) for field in schema.fields])
+def validate_and_enforce_schema(df: DataFrame, schema: StructType) -> DataFrame:
+    """
+    Validate and cast DataFrame columns to the specified schema.
+    If casting fails, preserve the original data and flag the row.
+    Enforce the schema to ensure the DataFrame adheres to the expected structure.
+    """
+    for field in schema.fields:
+        if isinstance(field.dataType, (LongType, IntegerType, DateType, TimestampType)):
+            cast_col = col(field.name).cast(field.dataType)
+            df = df.withColumn(f"{field.name}_valid", cast_col.isNotNull())
+            df = df.withColumn(field.name, when(cast_col.isNotNull(), cast_col).otherwise(col(field.name)))
+        else:
+            df = df.withColumn(field.name, col(field.name).cast(field.dataType))
+    
+    return df

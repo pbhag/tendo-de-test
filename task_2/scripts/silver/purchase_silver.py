@@ -14,9 +14,9 @@ schema = StructType([
     StructField("avocado_bunch_id", IntegerType(), nullable=True),
     StructField("reporting_year", IntegerType(), nullable=True),
     StructField("qa_process", StringType(), nullable=True),
-    SructField("billing_provider_sku", IntegerType(), nullable=True),
-    SructField("grocery_store_id", IntegerType(), nullable=True),
-    SructField("price_index", IntegerType(), nullable=True),
+    StructField("billing_provider_sku", IntegerType(), nullable=True),
+    StructField("grocery_store_id", IntegerType(), nullable=True),
+    StructField("price_index", IntegerType(), nullable=True),
     StructField("raw_file_name", StringType(), nullable=True),
     StructField("load_timestamp", TimestampType(), nullable=True),
     StructField("updated_at", TimestampType(), nullable=True)  # Add updated_at column
@@ -36,18 +36,20 @@ def main():
         # Add the current timestamp to the updated_at column
         df = df.withColumn("updated_at", current_timestamp())
 
+        # Validate and enforce schema
+        df_validated = validate_and_enforce_schema(df, schema)
+
         # Deduplicate data on primary key
         df_deduped = deduplicate_data(df, ["fertilizerid"])
-
-        # Enforce schema
-        df_enforced = enforce_schema(df_deduped, schema)
 
         # Data quality checks
         df_clean = df_enforced.filter(
             col("purchaseid").isNotNull() &
             col("consumerid").isNotNull() 
         )
-
+        # Check if the Silver table exists
+        if not DeltaTable.isDeltaTable(spark, silver_table):
+            df_clean.write.format("delta").mode("overwrite").saveAsTable(silver_table)
         # Merge into Silver table using Delta Lake's merge functionality
         if DeltaTable.isDeltaTable(spark, silver_table):
             delta_table = DeltaTable.forPath(spark, silver_table)

@@ -21,11 +21,11 @@ avocado_schema = StructType([
 ])
 
 def main():
-    script_name = "avocado_silver"
-    spark = SparkSession.builder.appName("AvocadoSilverLayer").getOrCreate()
+    script_name = "consumer_silver"
+    spark = SparkSession.builder.appName("ConsumerSilverLayer").getOrCreate()
 
-    bronze_table = "tendo.bronze.avocado"
-    silver_table = "tendo.silver.avocado"
+    bronze_table = "tendo.bronze.consumer"
+    silver_table = "tendo.silver.consumer"
 
     try:
         # Read data from the Bronze layer
@@ -39,7 +39,6 @@ def main():
 
         # Data quality checks
         df_clean = df_enforced.filter(
-            col("purchaseid").isNotNull() &
             col("consumerid").isNotNull()
         )
 

@@ -144,6 +144,7 @@ purchase_df = standardize_column_names(purchase_df)
 
 # COMMAND ----------
 
+from pyspark.sql.functions import trim, col, when
 # Show the original DataFrame
 print("Original DataFrame:")
 consumer_df.show()

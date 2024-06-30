@@ -48,7 +48,7 @@ def main():
         )
 
         # Ensure the schema matches before merging
-        df_clean = df_clean.select([col(field.name).cast(field.dataType) for field in schema.fields])
+        df_clean = df_clean.select([col(field.name) for field in schema.fields])
 
 
         # Check if the Silver table exists

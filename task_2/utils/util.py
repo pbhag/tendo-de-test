@@ -9,9 +9,11 @@ def clean_column_names(df: DataFrame) -> DataFrame:
         df = df.withColumnRenamed(col_name, new_col_name)
     return df
 
+
 def add_metadata(df: DataFrame, file_name: str) -> DataFrame:
     return df.withColumn("raw_file_name", lit(file_name)) \
              .withColumn("load_timestamp", current_timestamp())
+
 
 def create_table_if_not_exists(spark: SparkSession, table_name: str, ddl_path: str):
     if not spark.catalog.tableExists(table_name):
@@ -22,7 +24,14 @@ def create_table_if_not_exists(spark: SparkSession, table_name: str, ddl_path: s
     else:
         print(f"Table {table_name} already exists.")
 
-def log_error(error_message: str, log_dir: str = "logs/"):
+
+def log_error(error_message: str, script_name: str, log_dir: str = "/dbfs/logs/"):
+    # Ensure the log directory exists
     os.makedirs(log_dir, exist_ok=True)
-    with open(os.path.join(log_dir, "error.log"), "a") as log_file:
+    
+    # Generate the log file name using the script name
+    log_file_name = f"{script_name}_error.log"
+    
+    # Write the error message to the log file
+    with open(os.path.join(log_dir, log_file_name), "a") as log_file:
         log_file.write(f"{error_message}\n")

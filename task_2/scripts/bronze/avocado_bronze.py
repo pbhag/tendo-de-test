@@ -4,14 +4,14 @@ from task_2.utils.util import clean_column_names, add_metadata, create_table_if_
 def main():
     spark = SparkSession.builder.appName("AvocadoBronzeLayer").getOrCreate()
 
-    path = "s3://tendo-de-test/avocado.csv" # TODO: look for filename patterns for future loads
+    s3_path = "s3://tendo-de-test/avocado.csv" # TODO: look for filename patterns for future loads
     table_name = "tendo.bronze.avocado"
     ddl_path = "ddl/create_bronze_tables.sql"
 
     try:
         create_table_if_not_exists(spark, table_name, ddl_path)
 
-        df = spark.read.option("header", "true").csv(path)
+        df = spark.read.option("header", "true").csv(s3_path)
         cleaned_df = clean_column_names(df)
         final_df = add_metadata(cleaned_df, path)
 

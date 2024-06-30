@@ -1,10 +1,9 @@
-import sys 
 import os
 from pyspark.sql import SparkSession
 from task_2.utils.util import clean_column_names, add_metadata, create_table_if_not_exists, log_error
 
 def main():
-    script_name = os.path.basename(__file__).replace(".py", "")  # Get the script name without extension
+    script_name = "consumer_bronze"  # Hardcode the script name without extension
     spark = SparkSession.builder.appName("ConsumerBronzeLayer").getOrCreate()
 
     s3_path = "s3://tendo-de-test/consumer.csv" # TODO: look for filename patterns for future loads

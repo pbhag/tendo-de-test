@@ -7,7 +7,7 @@ from delta.tables import DeltaTable
 from task_2.utils.util import validate_and_enforce_schema, deduplicate_data, log_error
 
 # Define the expected schema
-avocado_schema = StructType([
+schema = StructType([
     StructField("purchaseid", LongType(), False),
     StructField("consumerid", LongType(), False),
     StructField("avocado_bunch_id", IntegerType(), True),
@@ -36,7 +36,7 @@ def main():
         df = df.withColumn("updated_at", current_timestamp())
 
         # Validate and enforce schema
-        df_validated = validate_and_enforce_schema(df, avocado_schema)
+        df_validated = validate_and_enforce_schema(df, schema)
 
         # Deduplicate data on primary key
         df_deduped = deduplicate_data(df_validated, ["purchaseid"])

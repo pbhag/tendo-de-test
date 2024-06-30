@@ -4,7 +4,7 @@ from task_2.utils.util import clean_column_names, add_metadata, create_table_if_
 def main():
     spark = SparkSession.builder.appName("AvocadoBronzeLayer").getOrCreate()
 
-    path = "s3://tendo-de-test/avocado.csv"
+    path = "s3://tendo-de-test/avocado.csv" # TODO: look for filename patterns for future loads
     table_name = "tendo.bronze.avocado"
     ddl_path = "ddl/create_bronze_tables.sql"
 

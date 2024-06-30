@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS tendo_de_bronze.avocado (
   born_date STRING,
   picked_date STRING,
   sold_date STRING,
-  avocado_days_picked INT,
+  avocado_days_picked STRING,
   raw_file_name STRING,
   load_timestamp TIMESTAMP
 ) USING DELTA;

@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp
 from pyspark.sql.types import StructType, StructField, LongType, IntegerType, DateType, TimestampType, StringType
 from delta.tables import DeltaTable
-from task_2.utils.util import deduplicate_data, enforce_schema, log_error
+from task_2.utils.util import deduplicate_data, enforce_schema, log_error, validate_and_enforce_schema
 
 # Define the expected schema
 schema = StructType([
@@ -43,10 +43,14 @@ def main():
         df_deduped = deduplicate_data(df, ["fertilizerid"])
 
         # Data quality checks
-        df_clean = df_enforced.filter(
+        df_clean = df_deduped.filter(
             col("purchaseid").isNotNull() &
             col("consumerid").isNotNull() 
         )
+        
+        # Ensure the schema matches before merging
+        df_clean = df_clean.select([col(field.name).cast(field.dataType) for field in schema.fields])
+
         # Check if the Silver table exists
         if not DeltaTable.isDeltaTable(spark, silver_table):
             df_clean.write.format("delta").mode("overwrite").saveAsTable(silver_table)

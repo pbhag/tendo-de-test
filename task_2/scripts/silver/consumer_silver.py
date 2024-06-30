@@ -2,7 +2,7 @@ import sys
 import os
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp
-from pyspark.sql.types import StructType, StructField, LongType, IntegerType, DateType, TimestampType, StringType
+from pyspark.sql.types import StructType, StructField, LongType, IntegerType, TimestampType, StringType
 from delta.tables import DeltaTable
 from task_2.utils.util import deduplicate_data, validate_and_enforce_schema, log_error
 
@@ -43,8 +43,11 @@ def main():
             col("consumerid").isNotNull()
         )
 
+        # Ensure the schema matches before merging
+        df_clean = df_clean.select([col(field.name).cast(field.dataType) for field in schema.fields])
+
         # Check if the Silver table exists
-        if not DeltaTable.isDeltaTable(spark, silver_table):
+        if not DeltaTable.isDeltaTable(spark, f"catalog://{silver_table}"):
             df_clean.write.format("delta").mode("overwrite").saveAsTable(silver_table)
         else:
             # Merge into Silver table using Delta Lake's merge functionality

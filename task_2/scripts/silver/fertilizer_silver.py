@@ -46,6 +46,9 @@ def main():
             col("fertilizerid").isNotNull()
         )
 
+        # Ensure the schema matches before merging
+        df_clean = df_clean.select([col(field.name).cast(field.dataType) for field in schema.fields])
+
         # Check if the Silver table exists
         if not DeltaTable.isDeltaTable(spark, silver_table"):
             df_clean.write.format("delta").mode("overwrite").saveAsTable(silver_table)

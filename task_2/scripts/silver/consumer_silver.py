@@ -7,15 +7,15 @@ from delta.tables import DeltaTable
 from task_2.utils.util import deduplicate_data, enforce_schema, log_error
 
 # Define the expected schema
-avocado_schema = StructType([
+schema = StructType([
     StructField("consumerid", LongType(), nullable=False),
     StructField("sex", StringType(), nullable=True),
-    StructField("ethnicity", StringType(), True),
-    StructField("race", StringType(), True),
-    StructField("age", IntegerTYpe(), True),
-    StructField("raw_file_name", StringType(), True),
-    StructField("load_timestamp", TimestampType(), True),
-    StructField("updated_at", TimestampType(), True)  # Add updated_at column
+    StructField("ethnicity", StringType(), nullable=True),
+    StructField("race", StringType(), nullable=True),
+    StructField("age", IntegerTYpe(), nullable=True),
+    StructField("raw_file_name", StringType(), nullable=True),
+    StructField("load_timestamp", TimestampType(), nullable=True),
+    StructField("updated_at", TimestampType(), nullable=True)  # Add updated_at column
 ])
 
 def main():
@@ -36,7 +36,7 @@ def main():
         df_deduped = deduplicate_data(df, ["consumerid"])
 
         # Enforce schema
-        df_enforced = enforce_schema(df_deduped, avocado_schema)
+        df_enforced = enforce_schema(df_deduped, schema)
 
         # Data quality checks
         df_clean = df_enforced.filter(

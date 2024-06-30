@@ -204,6 +204,7 @@ purchase_df_clean = purchase_df.select(
     col("consumerid").cast("string"),
     col("purchaseid").cast("integer"),
     col("graphed_date").cast("date"),
+    col("avocado_bunch_id").cast("integer"),
     col("reporting_year").cast("integer"),
     col("qa_process").cast("string"),
     col("billing_provider_sku").cast("integer"),

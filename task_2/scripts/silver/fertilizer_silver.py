@@ -8,25 +8,23 @@ from task_2.utils.util import deduplicate_data, enforce_schema, log_error
 
 # Define the expected schema
 schema = StructType([
-    StructField("purchaseid", LongType(), nullable=False),
-    StructField("consumerid", LongType(), nullable=False),
-    StructField("avocado_bunch_id", IntegerType(), nullable=True),
-    StructField("plu", LongType(), nullable=True),
-    StructField("ripe_index_when_picked", IntegerType(), nullable=True),
-    StructField("born_date", DateType(), nullable=True),
-    StructField("picked_date", DateType(), nullable=True),
-    StructField("sold_date", DateType(), nullable=True),
-    StructField("raw_file_name", StringType(), nullable=True),
-    StructField("load_timestamp", TimestampType(), nullable=True),
-    StructField("updated_at", TimestampType(), nullable=True)  # Add updated_at column
+    StructField("purchaseid", LongType(), False),
+    StructField("consumerid", LongType(), False),
+    StructField("fertilizerid", LongType(), False),
+    StructField("type", StringType(), True),
+    StructField("mg", IntegerType(), True),
+    StructField("frequency", StringType(), True),
+    StructField("raw_file_name", StringType(), True),
+    StructField("load_timestamp", TimestampType(), True),
+    StructField("updated_at", TimestampType(), True)  # Add updated_at column
 ])
 
 def main():
-    script_name = "avocado_silver"
-    spark = SparkSession.builder.appName("AvocadoSilverLayer").getOrCreate()
+    script_name = "fertilizer_silver"
+    spark = SparkSession.builder.appName("FertilizerSilverLayer").getOrCreate()
 
-    bronze_table = "tendo.bronze.avocado"
-    silver_table = "tendo.silver.avocado"
+    bronze_table = "tendo.bronze.fertilizer"
+    silver_table = "tendo.silver.fertilizer"
 
     try:
         # Read data from the Bronze layer
@@ -36,7 +34,7 @@ def main():
         df = df.withColumn("updated_at", current_timestamp())
 
         # Deduplicate data on primary key
-        df_deduped = deduplicate_data(df, ["consumerid"])
+        df_deduped = deduplicate_data(df, ["fertilizerid"])
 
         # Enforce schema
         df_enforced = enforce_schema(df_deduped, schema)
@@ -44,7 +42,8 @@ def main():
         # Data quality checks
         df_clean = df_enforced.filter(
             col("purchaseid").isNotNull() &
-            col("consumerid").isNotNull()
+            col("consumerid").isNotNull() &
+            col("fertilizerid").isNotNull()
         )
 
         # Merge into Silver table using Delta Lake's merge functionality
@@ -53,7 +52,7 @@ def main():
             delta_table.alias("t") \
                        .merge(
                            df_clean.alias("s"),
-                           "t.consumerid = s.consumerid"
+                           "t.fertilizerid = s.fertilizerid"
                        ) \
                        .whenMatchedUpdateAll() \
                        .whenNotMatchedInsertAll() \

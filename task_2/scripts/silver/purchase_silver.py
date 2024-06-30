@@ -10,23 +10,24 @@ from task_2.utils.util import deduplicate_data, enforce_schema, log_error
 schema = StructType([
     StructField("purchaseid", LongType(), nullable=False),
     StructField("consumerid", LongType(), nullable=False),
+    StructField("graphed_date", DateType(), nullable=False),
     StructField("avocado_bunch_id", IntegerType(), nullable=True),
-    StructField("plu", LongType(), nullable=True),
-    StructField("ripe_index_when_picked", IntegerType(), nullable=True),
-    StructField("born_date", DateType(), nullable=True),
-    StructField("picked_date", DateType(), nullable=True),
-    StructField("sold_date", DateType(), nullable=True),
+    StructField("reporting_year", IntegerType(), nullable=True),
+    StructField("qa_process", StringType(), nullable=True),
+    SructField("billing_provider_sku", IntegerType(), nullable=True),
+    SructField("grocery_store_id", IntegerType(), nullable=True),
+    SructField("price_index", IntegerType(), nullable=True),
     StructField("raw_file_name", StringType(), nullable=True),
     StructField("load_timestamp", TimestampType(), nullable=True),
     StructField("updated_at", TimestampType(), nullable=True)  # Add updated_at column
 ])
 
 def main():
-    script_name = "avocado_silver"
-    spark = SparkSession.builder.appName("AvocadoSilverLayer").getOrCreate()
+    script_name = "purchase_silver"
+    spark = SparkSession.builder.appName("PurchaseSilverLayer").getOrCreate()
 
-    bronze_table = "tendo.bronze.avocado"
-    silver_table = "tendo.silver.avocado"
+    bronze_table = "tendo.bronze.purchase"
+    silver_table = "tendo.silver.purchase"
 
     try:
         # Read data from the Bronze layer
@@ -36,7 +37,7 @@ def main():
         df = df.withColumn("updated_at", current_timestamp())
 
         # Deduplicate data on primary key
-        df_deduped = deduplicate_data(df, ["consumerid"])
+        df_deduped = deduplicate_data(df, ["fertilizerid"])
 
         # Enforce schema
         df_enforced = enforce_schema(df_deduped, schema)
@@ -44,7 +45,7 @@ def main():
         # Data quality checks
         df_clean = df_enforced.filter(
             col("purchaseid").isNotNull() &
-            col("consumerid").isNotNull()
+            col("consumerid").isNotNull() 
         )
 
         # Merge into Silver table using Delta Lake's merge functionality
@@ -53,7 +54,7 @@ def main():
             delta_table.alias("t") \
                        .merge(
                            df_clean.alias("s"),
-                           "t.consumerid = s.consumerid"
+                           "t.purchaseid = s.purchaseid"
                        ) \
                        .whenMatchedUpdateAll() \
                        .whenNotMatchedInsertAll() \

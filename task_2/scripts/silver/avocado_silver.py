@@ -1,7 +1,7 @@
 import sys
 import os
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, current_timestamp
 from pyspark.sql.types import StructType, StructField, LongType, IntegerType, DateType, TimestampType, StringType
 from delta.tables import DeltaTable
 from task_2.utils.util import deduplicate_data, enforce_schema, log_error
@@ -17,7 +17,8 @@ avocado_schema = StructType([
     StructField("picked_date", DateType(), True),
     StructField("sold_date", DateType(), True),
     StructField("raw_file_name", StringType(), True),
-    StructField("load_timestamp", TimestampType(), True)
+    StructField("load_timestamp", TimestampType(), True),
+    StructField("updated_at", TimestampType(), True)  # Add updated_at column
 ])
 
 def main():
@@ -30,6 +31,9 @@ def main():
     try:
         # Read data from the Bronze layer
         df = spark.read.format("delta").table(bronze_table)
+
+        # Add the current timestamp to the updated_at column
+        df = df.withColumn("updated_at", current_timestamp())
 
         # Deduplicate data
         df_deduped = deduplicate_data(df, ["consumerid"])

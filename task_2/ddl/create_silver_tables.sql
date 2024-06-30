@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS tendo.silver.purchase (
   grocery_store_id INT,
   price_index INT,
   raw_file_name STRING,
-  load_timestamp TIMESTAMP
+  load_timestamp TIMESTAMP,
+  updated_at TIMESTAMP
 ) USING DELTA;
 
 CREATE TABLE IF NOT EXISTS tendo.silver.avocado (
@@ -25,7 +26,8 @@ CREATE TABLE IF NOT EXISTS tendo.silver.avocado (
   picked_date DATE,
   sold_date DATE,
   raw_file_name STRING,
-  load_timestamp TIMESTAMP
+  load_timestamp TIMESTAMP,
+  updated_at TIMESTAMP
 ) USING DELTA;
 
 CREATE TABLE IF NOT EXISTS tendo.silver.fertilizer (
@@ -36,7 +38,8 @@ CREATE TABLE IF NOT EXISTS tendo.silver.fertilizer (
   mg INT,
   frequency STRING,
   raw_file_name STRING,
-  load_timestamp TIMESTAMP
+  load_timestamp TIMESTAMP,
+  updated_at TIMESTAMP
 ) USING DELTA;
 
 CREATE TABLE IF NOT EXISTS tendo.silver.consumer (
@@ -46,5 +49,6 @@ CREATE TABLE IF NOT EXISTS tendo.silver.consumer (
   race STRING,
   age INT,
   raw_file_name STRING,
-  load_timestamp TIMESTAMP
+  load_timestamp TIMESTAMP,
+  updated_at TIMESTAMP
 ) USING DELTA;

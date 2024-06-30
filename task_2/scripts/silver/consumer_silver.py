@@ -1,23 +1,21 @@
 import sys
 import os
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, current_timestamp
 from pyspark.sql.types import StructType, StructField, LongType, IntegerType, DateType, TimestampType, StringType
 from delta.tables import DeltaTable
 from task_2.utils.util import deduplicate_data, enforce_schema, log_error
 
 # Define the expected schema
 avocado_schema = StructType([
-    StructField("purchaseid", LongType(), False),
-    StructField("consumerid", LongType(), False),
-    StructField("avocado_bunch_id", IntegerType(), True),
-    StructField("plu", LongType(), True),
-    StructField("ripe_index_when_picked", IntegerType(), True),
-    StructField("born_date", DateType(), True),
-    StructField("picked_date", DateType(), True),
-    StructField("sold_date", DateType(), True),
+    StructField("consumerid", LongType(), nullable=False),
+    StructField("sex", StringType(), nullable=True),
+    StructField("ethnicity", StringType(), True),
+    StructField("race", StringType(), True),
+    StructField("age", IntegerTYpe(), True),
     StructField("raw_file_name", StringType(), True),
-    StructField("load_timestamp", TimestampType(), True)
+    StructField("load_timestamp", TimestampType(), True),
+    StructField("updated_at", TimestampType(), True)  # Add updated_at column
 ])
 
 def main():
@@ -31,7 +29,10 @@ def main():
         # Read data from the Bronze layer
         df = spark.read.format("delta").table(bronze_table)
 
-        # Deduplicate data
+        # Add the current timestamp to the updated_at column
+        df = df.withColumn("updated_at", current_timestamp())
+        
+        # Deduplicate data on primary key
         df_deduped = deduplicate_data(df, ["consumerid"])
 
         # Enforce schema

@@ -13,12 +13,12 @@ def main():
 
         df = spark.read.option("header", "true").csv(s3_path)
         cleaned_df = clean_column_names(df)
-        final_df = add_metadata(cleaned_df, path)
+        final_df = add_metadata(cleaned_df, s3_path)
 
         final_df.write.format("delta").mode("append").saveAsTable(table_name)
-        print(f"Data from {path} ingested to Bronze successfully.")
+        print(f"Data from {s3_path} ingested to Bronze successfully.")
     except Exception as e:
-        error_message = f"Error ingesting data from {path} to Bronze: {e}"
+        error_message = f"Error ingesting data from {s3_path} to Bronze: {e}"
         print(error_message)
         log_error(error_message)
     finally:

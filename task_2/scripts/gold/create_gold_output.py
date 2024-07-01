@@ -57,6 +57,8 @@ def main():
             col("updated_at").cast("timestamp")
         )
 
+        output_df = 
+
         # Check if the Gold table exists
         if not spark.catalog.tableExists(gold_table):
             output_df.write.format("delta").mode("overwrite").saveAsTable(gold_table)

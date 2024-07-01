@@ -55,6 +55,7 @@ def main():
             df_clean.write.format("delta").mode("overwrite").saveAsTable(silver_table)
         else:
             # Merge into Silver table using Delta Lake's merge functionality
+            spark = SparkSession.builder.getOrCreate()
             delta_table = DeltaTable.forName(spark, silver_table)
             (delta_table.alias("t")
                 .merge(

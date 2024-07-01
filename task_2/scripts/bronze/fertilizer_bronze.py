@@ -8,8 +8,7 @@ username = spark.sql("SELECT regexp_replace(current_user(), '[^a-zA-Z0-9]', '_')
 checkpoint_path = f"/tmp/{username}/_checkpoint/etl_quickstart"
 
 
-load_raw_data(table_name, ddl_path, checkpoint_path)
-
+load_raw_data(file_path, table_name, ddl_path, checkpoint_path)
 
 
 

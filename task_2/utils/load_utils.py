@@ -15,7 +15,7 @@ def create_table_if_not_exists(spark: SparkSession, table_name: str, ddl_path: s
         print(f"Table {table_name} already exists.")
 
 
-def load_raw_data(table_name, ddl_path, checkpoint_path):
+def load_raw_data(file_path, table_name, ddl_path, checkpoint_path):
     # Create table if it doesnt exist already, with DDL
     create_table_if_not_exists(spark, table_name, ddl_path) 
 

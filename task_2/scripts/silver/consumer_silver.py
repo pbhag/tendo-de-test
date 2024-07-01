@@ -2,7 +2,7 @@
 import sys
 import os
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, current_timestamp
+from pyspark.sql.functions import col, current_timestamp, lit
 from pyspark.sql.types import StructType, StructField, LongType, IntegerType, TimestampType, StringType
 from delta.tables import DeltaTable
 from task_2.utils.util import deduplicate_data, validate_and_enforce_schema, log_error
@@ -22,6 +22,7 @@ schema = StructType([
 
 bronze_table = "tendo.bronze.consumer"
 silver_table = "tendo.silver.consumer"
+error_logs_table = "tendo.silver.purchase_error_logs"
 
 
 # Read data from the Bronze layer
@@ -40,6 +41,11 @@ df_deduped = deduplicate_data(df_validated, ["consumerid"])
 df_clean = df_deduped.filter(
     col("consumerid").isNotNull()
 )
+
+# Identify rows failing data quality checks
+invalid_rows = df_validated.filter(
+    col("consumerid").isNull()
+).withColumn("error_reason", lit("Null values in required columns"))
 
 # Ensure the schema matches before merging
 df_clean = df_clean.select([col(field.name) for field in schema.fields])
@@ -61,4 +67,8 @@ else:
 
 print(f"Data from {bronze_table} upserted to Silver table: {silver_table}")
 
-
+# Write invalid rows to the error logs table
+if not spark.catalog.tableExists(error_logs_table):
+    invalid_rows.write.format("delta").mode("overwrite").saveAsTable(error_logs_table)
+else:
+    invalid_rows.write.format("delta").mode("append").saveAsTable(error_logs_table)

@@ -52,7 +52,7 @@ def main():
         df_clean = df_clean.select([col(field.name) for field in schema.fields])
 
         # Check if the Silver table exists
-        if not DeltaTable.isDeltaTable(spark, silver_table):
+        if not spark.catalog.tableExists(silver_table):
             df_clean.write.format("delta").mode("overwrite").saveAsTable(silver_table)
         # Merge into Silver table using Delta Lake's merge functionality
         if DeltaTable.isDeltaTable(spark, silver_table):

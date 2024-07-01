@@ -20,11 +20,12 @@ def load_raw_data(s3_directory, filename, table_name, ddl_path, checkpoint_path)
     create_table_if_not_exists(spark, table_name, ddl_path) 
 
     # Configure Auto Loader to ingest CSV data to a Delta table
-    df = (spark.readStream
+    (spark.readStream
     .format("cloudFiles")
     .option("cloudFiles.format", "csv")
     .option("cloudFiles.schemaLocation", checkpoint_path)
-    .option("cloudFiles.includePatterns", f"{filename}.*\\.csv")
+    .option("cloudFiles.includePatterns", f"{filename}")
+    .option("header", "true")
     .load(s3_directory)
     .select("*", 
             col("_metadata.file_path").alias("source_file"), 
@@ -33,5 +34,3 @@ def load_raw_data(s3_directory, filename, table_name, ddl_path, checkpoint_path)
     .option("checkpointLocation", checkpoint_path)
     .trigger(availableNow=True)
     .toTable(table_name))
-
-    return df

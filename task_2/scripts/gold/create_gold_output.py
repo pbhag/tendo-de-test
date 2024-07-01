@@ -1,16 +1,25 @@
 # Databricks notebook source
-import sys
-import os
+# Databricks notebook source
+
+# MAGIC %md
+# MAGIC ## Gold Data Generation
+# MAGIC This notebook reads from the Silver tables, performs transformations, and writes to the Gold table.
+
+# COMMAND ----------
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, datediff, current_timestamp
 from delta.tables import DeltaTable
 
+# Initialize Spark session
+spark = SparkSession.builder.appName("GenerateGoldLayer").getOrCreate()
+
+# Table names
 silver_consumer_table = "tendo.silver.consumer"
 silver_purchase_table = "tendo.silver.purchase"
 silver_avocado_table = "tendo.silver.avocado"
 silver_fertilizer_table = "tendo.silver.fertilizer"
 gold_table = "tendo.gold.final_output"
-
 
 # Read data from the Silver tables
 consumer_df = spark.read.format("delta").table(silver_consumer_table)
@@ -25,25 +34,39 @@ avocado_df = avocado_df.withColumn("avocado_days_picked", datediff(col("sold_dat
 
 fertilizer_df = fertilizer_df.withColumnRenamed("type", "fertilizer_type")
 
-# Join the tables
-consumer_purchase_df = consumer_df.join(purchase_df, on="consumerid", how="outer")
-consumer_purchase_avocado_df = consumer_purchase_df.join(avocado_df, on=["purchaseid"], how="outer")
-final_df = consumer_purchase_avocado_df.join(fertilizer_df, on=["purchaseid"], how="outer")
+# Join the tables and drop the join columns to avoid ambiguity
+consumer_purchase_df = consumer_df.alias("c") \
+    .join(purchase_df.alias("p"), "consumerid", how="outer") \
+    .drop(purchase_df["consumerid"])
+
+consumer_purchase_avocado_df = consumer_purchase_df.alias("cp") \
+    .join(avocado_df.alias("a"), "purchaseid", how="outer") \
+    .drop(avocado_df["purchaseid"]) \
+    .drop(avocado_df["consumerid"])
+
+final_df = consumer_purchase_avocado_df.alias("cpa") \
+    .join(fertilizer_df.alias("f"), "purchaseid", how="outer") \
+    .drop(fertilizer_df["purchaseid"])
 
 # Select the required columns and add updated_at column
 output_df = final_df.select(
-    col("consumerid"),
-    col("sex"),
-    col("age"),
-    col("avocado_days_sold"),
-    col("avocado_ripe_index"),
-    col("avocado_days_picked"),
-    col("fertilizer_type")
+    col("cpa.consumerid").alias("consumer_id"),
+    col("cpa.sex"),
+    col("cpa.age"),
+    col("cpa.avocado_days_sold"),
+    col("cpa.avocado_ripe_index"),
+    col("cpa.avocado_days_picked"),
+    col("f.fertilizer_type")
 ).withColumn("updated_at", current_timestamp())
+
+# Filter out records with non-positive values for avocado_days_sold and avocado_days_picked
+output_df = output_df.filter(
+    (col("avocado_days_sold") > 0) & (col("avocado_days_picked") > 0)
+)
 
 # Ensure the schema matches before merging
 output_df = output_df.select(
-    col("consumerid").cast("long"),
+    col("consumer_id").cast("long"),
     col("sex").cast("string"),
     col("age").cast("integer"),
     col("avocado_days_sold").cast("integer"),
@@ -51,10 +74,6 @@ output_df = output_df.select(
     col("avocado_days_picked").cast("integer"),
     col("fertilizer_type").cast("string"),
     col("updated_at").cast("timestamp")
-)
-
-output_df = output_df.filter(
-    (col("avocado_days_sold") > 0) & (col("avocado_days_picked") > 0)
 )
 
 # Check if the Gold table exists
@@ -73,5 +92,8 @@ else:
         .execute()
 
 print(f"Data upserted to Gold table: {gold_table}")
+
+
+# COMMAND ----------
 
 

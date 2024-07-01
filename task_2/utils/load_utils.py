@@ -1,4 +1,6 @@
+from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp
+
 
 spark = SparkSession.builder.appName("RawIngest").getOrCreate()
 

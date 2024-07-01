@@ -1,4 +1,5 @@
 import os
+from pyspark.sql import SparkSession
 from pyspark.sql import DataFrame, SparkSession, Window
 from pyspark.sql.functions import lit, current_timestamp, row_number, col, when
 from pyspark.sql.types import StructType, LongType, IntegerType, DateType, TimestampType

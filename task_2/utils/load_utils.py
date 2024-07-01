@@ -15,7 +15,7 @@ def create_table_if_not_exists(spark: SparkSession, table_name: str, ddl_path: s
         print(f"Table {table_name} already exists.")
 
 
-def load_raw_data(s3_directory, filename, table_name, ddl_path, checkpoint_path):
+def load_raw_data(file_path, table_name, ddl_path, checkpoint_path):
     # Create table if it doesn't exist already, with DDL
     create_table_if_not_exists(spark, table_name, ddl_path) 
 
@@ -24,9 +24,8 @@ def load_raw_data(s3_directory, filename, table_name, ddl_path, checkpoint_path)
     .format("cloudFiles")
     .option("cloudFiles.format", "csv")
     .option("cloudFiles.schemaLocation", checkpoint_path)
-    .option("cloudFiles.includePattern", f"{filename}") 
     .option("header", "true")
-    .load(s3_directory)
+    .load(file_path)
     .select("*", 
             col("_metadata.file_path").alias("source_file"), 
             current_timestamp().alias("processing_time"))

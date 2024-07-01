@@ -40,13 +40,14 @@ consumer_purchase_df = consumer_df.alias("c") \
     .drop(purchase_df["consumerid"])
 
 consumer_purchase_avocado_df = consumer_purchase_df.alias("cp") \
-    .join(avocado_df.alias("a"), "purchaseid", how="outer") \
+    .join(avocado_df.alias("a"), ["purchaseid", "consumerid"], how="outer") \
     .drop(avocado_df["purchaseid"]) \
     .drop(avocado_df["consumerid"])
 
 final_df = consumer_purchase_avocado_df.alias("cpa") \
-    .join(fertilizer_df.alias("f"), "purchaseid", how="outer") \
+    .join(fertilizer_df.alias("f"), ["purchaseid", "consumerid"], how="outer") \
     .drop(fertilizer_df["purchaseid"])
+    .drop(fertilizer_df["consumerid"])
 
 # Select the required columns and add updated_at column
 output_df = final_df.select(

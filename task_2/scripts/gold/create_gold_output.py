@@ -75,7 +75,7 @@ output_df = output_df.select(
     col("avocado_days_picked").cast("integer"),
     col("fertilizer_type").cast("string"),
     col("updated_at").cast("timestamp")
-)
+).dropDuplicates()
 
 # Check if the Gold table exists
 if not spark.catalog.tableExists(gold_table):

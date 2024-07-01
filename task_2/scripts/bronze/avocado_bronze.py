@@ -1,31 +1,14 @@
-import sys 
-import os
-from pyspark.sql import SparkSession
-from task_2.utils.util import clean_column_names, add_metadata, create_table_if_not_exists, log_error
+from task_2.utils.load_utils import load_raw_data
 
-def main():
-    script_name = "avocado_bronze"  # Hardcode the script name without extension
-    spark = SparkSession.builder.appName("AvocadoBronzeLayer").getOrCreate()
 
-    s3_path = "s3://tendo-de-test/avocado.csv" # TODO: look for filename patterns for future loads
-    table_name = "tendo.bronze.avocado"
-    ddl_path = "ddl/create_bronze_tables.sql"
+file_path = "s3://tendo-de-test/avocado.csv" # TODO: look for filename patterns for future loads
+table_name = "tendo.bronze.avocado"
+ddl_path = "ddl/create_bronze_tables.sql"
+username = spark.sql("SELECT regexp_replace(current_user(), '[^a-zA-Z0-9]', '_')").first()[0]
+checkpoint_path = f"/tmp/{username}/_checkpoint/etl_quickstart"
 
-    try:
-        create_table_if_not_exists(spark, table_name, ddl_path)
 
-        df = spark.read.option("header", "true").csv(s3_path)
-        cleaned_df = clean_column_names(df)
-        final_df = add_metadata(cleaned_df, s3_path)
+load_raw_data(table_name, ddl_path, checkpoint_path)
 
-        final_df.write.format("delta").mode("append").saveAsTable(table_name)
-        print(f"Data from {s3_path} ingested to Bronze successfully.")
-    except Exception as e:
-        error_message = f"Error ingesting data from {s3_path} to Bronze: {e}"
-        print(error_message)
-        log_error(error_message, script_name=script_name, log_dir="/dbfs/logs/")
-    finally:
-        spark.stop()
 
-if __name__ == "__main__":
-    main()
+

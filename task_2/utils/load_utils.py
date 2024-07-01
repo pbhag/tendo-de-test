@@ -16,7 +16,7 @@ def create_table_if_not_exists(spark: SparkSession, table_name: str, ddl_path: s
 
 
 def load_raw_data(s3_directory, filename, table_name, ddl_path, checkpoint_path):
-    # Create table if it doesnt exist already, with DDL
+    # Create table if it doesn't exist already, with DDL
     create_table_if_not_exists(spark, table_name, ddl_path) 
 
     # Configure Auto Loader to ingest CSV data to a Delta table
@@ -24,7 +24,7 @@ def load_raw_data(s3_directory, filename, table_name, ddl_path, checkpoint_path)
     .format("cloudFiles")
     .option("cloudFiles.format", "csv")
     .option("cloudFiles.schemaLocation", checkpoint_path)
-    .option("cloudFiles.includePatterns", f"{filename}")
+    .option("cloudFiles.includePattern", f"{filename}") 
     .option("header", "true")
     .load(s3_directory)
     .select("*", 

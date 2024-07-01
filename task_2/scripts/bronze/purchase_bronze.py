@@ -1,3 +1,4 @@
+# Databricks notebook source
 from task_2.utils.load_utils import load_raw_data
 
 
@@ -10,3 +11,4 @@ checkpoint_path = f"/tmp/{username}/_checkpoint/etl_quickstart"
 
 
 load_raw_data(s3_directory, filename, table_name, ddl_path, checkpoint_path)
+

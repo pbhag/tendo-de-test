@@ -1,3 +1,4 @@
+# Databricks notebook source
 import sys
 import os
 from pyspark.sql import SparkSession
@@ -22,59 +23,48 @@ schema = StructType([
     StructField("updated_at", TimestampType(), nullable=True)  # Add updated_at column
 ])
 
-def main():
-    script_name = "purchase_silver"
-    spark = SparkSession.builder.appName("PurchaseSilverLayer").getOrCreate()
 
-    bronze_table = "tendo.bronze.purchase"
-    silver_table = "tendo.silver.purchase"
+bronze_table = "tendo.bronze.purchase"
+silver_table = "tendo.silver.purchase"
 
-    try:
-        # Read data from the Bronze layer
-        df = spark.read.format("delta").table(bronze_table)
 
-        # Add the current timestamp to the updated_at column
-        df = df.withColumn("updated_at", current_timestamp())
+# Read data from the Bronze layer
+df = spark.read.format("delta").table(bronze_table)
 
-        # Validate and enforce schema
-        df_validated = validate_and_enforce_schema(df, schema)
+# Add the current timestamp to the updated_at column
+df = df.withColumn("updated_at", current_timestamp())
 
-        # Deduplicate data on primary key
-        df_deduped = deduplicate_data(df, ["fertilizerid"])
+# Validate and enforce schema
+df_validated = validate_and_enforce_schema(df, schema)
 
-        # Data quality checks
-        df_clean = df_deduped.filter(
-            col("purchaseid").isNotNull() &
-            col("consumerid").isNotNull() 
-        )
-        
-        # Ensure the schema matches before merging
-        df_clean = df_clean.select([col(field.name) for field in schema.fields])
+# Deduplicate data on primary key
+df_deduped = deduplicate_data(df, ["fertilizerid"])
 
-        # Check if the Silver table exists
-        if not spark.catalog.tableExists(silver_table):
-            df_clean.write.format("delta").mode("overwrite").saveAsTable(silver_table)
-        # Merge into Silver table using Delta Lake's merge functionality
-        if DeltaTable.isDeltaTable(spark, silver_table):
-            delta_table = DeltaTable.forPath(spark, silver_table)
-            delta_table.alias("t") \
-                       .merge(
-                           df_clean.alias("s"),
-                           "t.purchaseid = s.purchaseid"
-                       ) \
-                       .whenMatchedUpdateAll() \
-                       .whenNotMatchedInsertAll() \
-                       .execute()
-        else:
-            df_clean.write.format("delta").mode("overwrite").saveAsTable(silver_table)
+# Data quality checks
+df_clean = df_deduped.filter(
+    col("purchaseid").isNotNull() &
+    col("consumerid").isNotNull() 
+)
 
-        print(f"Data from {bronze_table} upserted to Silver successfully.")
-    except Exception as e:
-        error_message = f"Error upserting data from {bronze_table} to Silver: {e}"
-        print(error_message)
-        log_error(error_message, script_name=script_name, log_dir="/dbfs/logs/")
-    finally:
-        spark.stop()
+# Ensure the schema matches before merging
+df_clean = df_clean.select([col(field.name) for field in schema.fields])
 
-if __name__ == "__main__":
-    main()
+# Check if the Silver table exists
+if not spark.catalog.tableExists(silver_table):
+    df_clean.write.format("delta").mode("overwrite").saveAsTable(silver_table)
+# Merge into Silver table using Delta Lake's merge functionality
+if DeltaTable.isDeltaTable(spark, silver_table):
+    delta_table = DeltaTable.forPath(spark, silver_table)
+    delta_table.alias("t") \
+                .merge(
+                    df_clean.alias("s"),
+                    "t.purchaseid = s.purchaseid"
+                ) \
+                .whenMatchedUpdateAll() \
+                .whenNotMatchedInsertAll() \
+                .execute()
+else:
+    df_clean.write.format("delta").mode("overwrite").saveAsTable(silver_table)
+
+
+

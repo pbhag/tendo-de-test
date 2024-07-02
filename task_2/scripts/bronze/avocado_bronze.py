@@ -9,7 +9,7 @@ username = spark.sql("SELECT regexp_replace(current_user(), '[^a-zA-Z0-9]', '_')
 table_name = f"tendo.bronze.avocado"
 checkpoint_path = f"/tmp/{username}/_checkpoint/etl_quickstart"
 
-create_table_if_not_exists(spark, table_name, ddl_path)
+# create_table_if_not_exists(spark, table_name, ddl_path)
 
 df = (spark.readStream
   .format("cloudFiles")

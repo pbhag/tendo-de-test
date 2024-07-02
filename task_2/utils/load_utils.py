@@ -16,8 +16,7 @@ def create_table_if_not_exists(spark: SparkSession, table_name: str, ddl_path: s
 
 
 def load_raw_data(file_path, table_name, ddl_path, checkpoint_path):
-    # Create table if it doesn't exist already, with DDL
-    create_table_if_not_exists(spark, table_name, ddl_path) 
+
 
     # Configure Auto Loader to ingest CSV data to a Delta table
     (spark.readStream

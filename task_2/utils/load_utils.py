@@ -24,6 +24,7 @@ def load_raw_data(file_path, table_name, ddl_path, checkpoint_path):
     .option("cloudFiles.format", "csv")
     .option("cloudFiles.schemaLocation", checkpoint_path)
     .option("header", "true")
+    .option("mergeSchema", "true")
     .load(file_path)
     .select("*", 
             col("_metadata.file_path").alias("source_file"), 

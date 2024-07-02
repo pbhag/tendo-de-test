@@ -5,7 +5,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp, lit
 from pyspark.sql.types import StructType, StructField, LongType, IntegerType, TimestampType, StringType
 from delta.tables import DeltaTable
-from task_2.utils.util import deduplicate_data, validate_and_enforce_schema, log_error
+from task_2.utils.transform_utils import validate_and_enforce_schema, deduplicate_data, log_error
 
 # Define the expected schema
 schema = StructType([

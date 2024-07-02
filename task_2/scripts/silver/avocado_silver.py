@@ -5,7 +5,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp, when, lit
 from pyspark.sql.types import StructType, StructField, LongType, IntegerType, DateType, TimestampType, StringType
 from delta.tables import DeltaTable
-from task_2.utils.util import validate_and_enforce_schema, deduplicate_data, log_error
+from task_2.utils.transform_utils import validate_and_enforce_schema, deduplicate_data, log_error
 
 bronze_table = "tendo.bronze.avocado"
 silver_table = "tendo.silver.avocado"
